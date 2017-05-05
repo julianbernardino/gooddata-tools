@@ -15,8 +15,6 @@ module GoodData
         
         expression = GoodData::SmallGoodZilla.create_category_filter([label] + values, project)
         values = expression[:expression]
-        
-        puts "Setting values: #{values}"
 
         payload = {
           "variable" => {
@@ -61,7 +59,6 @@ module GoodData
         expected_headers = ["login", "variable", "value", "label", "pid"]
         fail "Headers: #{data.headers.join(', ')} | Expected: #{expected_headers.join(', ')}" unless data.headers == expected_headers
         
-        puts 'data:' + data.to_s
         data.group_by { |d| d['pid'] }
         .map do |project, row|
           # Set project context.
