@@ -5,25 +5,24 @@ This brick assigns variable values at the user level for one or more workspaces.
 
 ## Prerequisites
 
-1. A mapping table, `vb_var_map`, which contains the following fields. See appendix.
-```
-login, variable, value, label, client_id
-```
-
-2. A mapping table, `vb_pid_map`, which contains the following fields. See appendix.
-```
-client_id, pid
-```
-
-3. An input source table, `vb_input`, which is used directly by the brick.
+The brick requires only one input source table, `vb_input`, which is referenced directly at runtime.
 ```
 login, variable, value, label, pid
 ```
 
+To create this input table, I suggest you have a client provide the data for a mapping table, `vb_var_map`, which contains the following fields. See appendix.
+```
+login, variable, value, label, client_id
+```
+
+You will then join it with a table, `vb_pid_map`, where you've stored the following fields. See appendix.
+```
+client_id, pid
+```
+
 ## Steps
 
-1. Ensure that the prerequisite tables exist and are populated.
-2. Deploy script with the following parameters to the environment's SERVICE workspace.
+Deploy script with the following parameters to the environment's SERVICE workspace.
 
 | Parameter | Example Value |
 | --- | --- |
@@ -50,6 +49,16 @@ Example value for `gd_encoded_params`:
 }
 ```
 
+Example result for `vb_input`:
+```
+login,variable,value,label,client_id
+spongebob@krustykrab.com,YxdT5fpMfoef,'sales',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
+spongebob@krustykrab.com,YxdT5fpMfoef,'facilities',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
+patrick@krustykrab.com,YxdT5fpMfoef,'marketing',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
+squidward@krustykrab.com,YxdT5fpMfoef,'finance',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
+mrspuff@puffsboatingschool.com,YxdT5fpMfoef,'services',label.dept.dept,na9djp97y9crtatkh9snvswjs7r365jh
+```
+
 Example data for `vb_var_map`:
 ```
 login,variable,value,label,client_id
@@ -65,14 +74,4 @@ Example data for `vb_pid_map`:
 client_id,pid
 krustykrab,8t7yjpgwu74u8csup28ywur2asktvbw5
 puffsboatingschool,na9djp97y9crtatkh9snvswjs7r365jh
-```
-
-Example result for `vb_input`:
-```
-login,variable,value,label,client_id
-spongebob@krustykrab.com,YxdT5fpMfoef,'sales',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
-spongebob@krustykrab.com,YxdT5fpMfoef,'facilities',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
-patrick@krustykrab.com,YxdT5fpMfoef,'marketing',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
-squidward@krustykrab.com,YxdT5fpMfoef,'finance',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
-mrspuff@puffsboatingschool.com,YxdT5fpMfoef,'services',label.dept.dept,na9djp97y9crtatkh9snvswjs7r365jh
 ```
