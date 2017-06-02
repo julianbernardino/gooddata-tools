@@ -5,12 +5,12 @@ This brick assigns variable values at the user level for one or more workspaces.
 
 ## Prerequisites
 
-The brick requires only one input source table, `vb_input`, which is referenced directly at runtime.
+The brick requires only one input source table, `vb_input`, which is referenced directly at runtime. See appendix.
 ```
 login, variable, value, label, pid
 ```
 
-To create this input table, I suggest you have a client provide the data for a mapping table, `vb_var_map`, which contains the following fields. See appendix.
+You can generate `vb_input` however you like. One way is to have the client provide the data for a mapping table, `vb_var_map`, which contains the following fields. See appendix.
 ```
 login, variable, value, label, client_id
 ```
@@ -28,6 +28,7 @@ Deploy script with the following parameters to the environment's SERVICE workspa
 | --- | --- |
 | gd_encoded_params | (see appendix) |
 | CLIENT_GDC_HOSTNAME | secure.gooddata.com |
+| CLIENT_GDC_PROTOCOL | https |
 | GDC_USERNAME | ps-etl+tech-user@gooddata.com |
 | GDC_PASSWORD | (secure parameter) |
 | ads_client\|username | ps-etl+tech-user@gooddata.com |
@@ -43,7 +44,6 @@ Example value for `gd_encoded_params`:
     "query": "SELECT login, variable, value, label, pid FROM vb_input"
   },
   "ads_client": {
-    "ads_id": "ADS_ID",
     "jdbc_url": "jdbc:gdc:datawarehouse://HOSTNAME:443/gdc/datawarehouse/instances/ADS_ID"
   }
 }
@@ -51,7 +51,7 @@ Example value for `gd_encoded_params`:
 
 Example result for `vb_input`:
 ```
-login,variable,value,label,client_id
+login,variable,value,label,pid
 spongebob@krustykrab.com,YxdT5fpMfoef,'sales',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
 spongebob@krustykrab.com,YxdT5fpMfoef,'facilities',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
 patrick@krustykrab.com,YxdT5fpMfoef,'marketing',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
