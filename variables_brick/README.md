@@ -7,17 +7,7 @@ This brick assigns variable values at the user level for one or more workspaces.
 
 The brick requires only one input source table, `vb_input`, which is referenced directly at runtime. See appendix.
 ```
-login, variable, value, label, pid
-```
-
-You can generate `vb_input` however you like. One way is to have the client provide the data for a mapping table, `vb_var_map`, which contains the following fields. See appendix.
-```
 login, variable, value, label, client_id
-```
-
-You will then join it with a table, `vb_pid_map`, where you've stored the following fields. See appendix.
-```
-client_id, pid
 ```
 
 ## Steps
@@ -33,6 +23,8 @@ Deploy script with the following parameters to the environment's SERVICE workspa
 | GDC_PASSWORD | (secure parameter) |
 | ads_client\|username | ps-etl+tech-user@gooddata.com |
 | ads_client\|password | (secure parameter) |
+| organization | organization_name |
+| segment | segment_name |
 
 ## Appendix
 
@@ -41,7 +33,7 @@ Example value for `gd_encoded_params`:
 {
   "input_source": {
     "type": "ads",
-    "query": "SELECT login, variable, value, label, pid FROM vb_input"
+    "query": "SELECT login, variable, value, label, client_id FROM vb_input"
   },
   "ads_client": {
     "jdbc_url": "jdbc:gdc:datawarehouse://HOSTNAME:443/gdc/datawarehouse/instances/ADS_ID"
@@ -51,27 +43,10 @@ Example value for `gd_encoded_params`:
 
 Example result for `vb_input`:
 ```
-login,variable,value,label,pid
-spongebob@krustykrab.com,YxdT5fpMfoef,'sales',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
-spongebob@krustykrab.com,YxdT5fpMfoef,'facilities',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
-patrick@krustykrab.com,YxdT5fpMfoef,'marketing',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
-squidward@krustykrab.com,YxdT5fpMfoef,'finance',label.dept.dept,8t7yjpgwu74u8csup28ywur2asktvbw5
-mrspuff@puffsboatingschool.com,YxdT5fpMfoef,'services',label.dept.dept,na9djp97y9crtatkh9snvswjs7r365jh
-```
-
-Example data for `vb_var_map`:
-```
 login,variable,value,label,client_id
 spongebob@krustykrab.com,YxdT5fpMfoef,'sales',label.dept.dept,krustykrab
 spongebob@krustykrab.com,YxdT5fpMfoef,'facilities',label.dept.dept,krustykrab
 patrick@krustykrab.com,YxdT5fpMfoef,'marketing',label.dept.dept,krustykrab
 squidward@krustykrab.com,YxdT5fpMfoef,'finance',label.dept.dept,krustykrab
 mrspuff@puffsboatingschool.com,YxdT5fpMfoef,'services',label.dept.dept,puffsboatingschool
-```
-
-Example data for `vb_pid_map`:
-```
-client_id,pid
-krustykrab,8t7yjpgwu74u8csup28ywur2asktvbw5
-puffsboatingschool,na9djp97y9crtatkh9snvswjs7r365jh
 ```

@@ -45,24 +45,55 @@ module GoodData
         
         client = params['GDC_GD_CLIENT'] || fail('GDC_GD_CLIENT missing')
         project = client.projects(params['gdc_project']) || client.projects(params['GDC_PROJECT_ID'])
+
         fail 'input_source missing' unless params['input_source']
         data_source = GoodData::Helpers::DataSource.new(params['input_source'])
         
         mandatory_params = [data_source]
         mandatory_params.each { |param| fail param + ' is required' unless param }
-        
+
+        domain_name = params['organization'] || params['domain']
+        domain = client.domain(domain_name)
+
+        segment_name = params['segment'] || fail('Segment missing')
+
+        all_domain_segments = domain.segments
+
+        puts "All segments:"
+        all_domain_segments.each do |segment|
+          puts "-> #{segment.segment_id}"
+        end
+
+        pick_segment = all_domain_segments.select do |segment|
+          segment.segment_id.downcase == segment_name
+        end
+
+        puts "Pick segment:"
+        pick_segment.each do |segment|
+          puts "-> #{segment.segment_id}"
+
+          @client_pid_map = {}
+
+          segment.clients.each do |client|
+            @client_pid_map["#{client.client_id}"] = "#{client.project_uri.split("/").last}"
+          end
+        end
+
+        puts @client_pid_map.to_s
+
         # Load variables and values from ADS.
         data = CSV.read(File.open(data_source.realize(params), 'r:UTF-8'),
                :headers => true, :return_headers => false, encoding: 'utf-8')
         
         # Check header names and order.
-        expected_headers = ["login", "variable", "value", "label", "pid"]
+        expected_headers = ["login", "variable", "value", "label", "client_id"]
         fail "Headers: #{data.headers.join(', ')} | Expected: #{expected_headers.join(', ')}" unless data.headers == expected_headers
         
-        data.group_by { |d| d['pid'] }
-        .map do |project, row|
+        data.group_by { |d| d['client_id'] }
+        .map do |input_client, row|
           # Set project context.
-          project = client.projects(project)
+          get_project = @client_pid_map["#{input_client}"]
+          project = client.projects(get_project)
 
           # Set user and variable context.
           row.group_by { |line| [line['variable'], line['login']] }
