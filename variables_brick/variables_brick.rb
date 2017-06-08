@@ -43,7 +43,7 @@ module GoodData
 
       def call(params)
         
-        client = params['GDC_GD_CLIENT'] || fail('GDC_GD_CLIENT missing')
+        client = params['GDC_GD_CLIENT'] || fail('GDC_GD_CLIENT is missing')
         project = client.projects(params['gdc_project']) || client.projects(params['GDC_PROJECT_ID'])
 
         fail 'input_source missing' unless params['input_source']
@@ -52,14 +52,14 @@ module GoodData
         mandatory_params = [data_source]
         mandatory_params.each { |param| fail param + ' is required' unless param }
 
-        domain_name = params['organization'] || params['domain']
+        domain_name = params['organization'] || params['domain'] || fail('Organization parameter is empty')
         domain = client.domain(domain_name)
 
-        segment_name = params['segment'] || fail('Segment missing')
+        segment_name = params['segment'] || fail('Segment parameter is empty')
 
         all_domain_segments = domain.segments
 
-        puts "All segments:"
+        puts "List segments:"
         all_domain_segments.each do |segment|
           puts "-> #{segment.segment_id}"
         end
@@ -79,15 +79,13 @@ module GoodData
           end
         end
 
-        puts @client_pid_map.to_s
-
         # Load variables and values from ADS.
         data = CSV.read(File.open(data_source.realize(params), 'r:UTF-8'),
                :headers => true, :return_headers => false, encoding: 'utf-8')
         
         # Check header names and order.
-        expected_headers = ["login", "variable", "value", "label", "client_id"]
-        fail "Headers: #{data.headers.join(', ')} | Expected: #{expected_headers.join(', ')}" unless data.headers == expected_headers
+        expected_headers = ["client_id", "login", "label", "variable", "value"]
+        fail "Unexpected headers - check naming and ordering" unless data.headers == expected_headers
         
         data.group_by { |d| d['client_id'] }
         .map do |input_client, row|

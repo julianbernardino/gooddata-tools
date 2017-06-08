@@ -7,7 +7,7 @@ This brick assigns variable values at the user level for one or more workspaces.
 
 The brick requires only one input source table, `vb_input`, which is referenced directly at runtime. See appendix.
 ```
-login, variable, value, label, client_id
+client_id, login, label, variable, value
 ```
 
 ## Steps
@@ -33,7 +33,7 @@ Example value for `gd_encoded_params`:
 {
   "input_source": {
     "type": "ads",
-    "query": "SELECT login, variable, value, label, client_id FROM vb_input"
+    "query": "SELECT client_id, login, label, variable, value FROM vb_input"
   },
   "ads_client": {
     "jdbc_url": "jdbc:gdc:datawarehouse://HOSTNAME:443/gdc/datawarehouse/instances/ADS_ID"
@@ -43,10 +43,10 @@ Example value for `gd_encoded_params`:
 
 Example result for `vb_input`:
 ```
-login,variable,value,label,client_id
-spongebob@krustykrab.com,YxdT5fpMfoef,'sales',label.dept.dept,krustykrab
-spongebob@krustykrab.com,YxdT5fpMfoef,'facilities',label.dept.dept,krustykrab
-patrick@krustykrab.com,YxdT5fpMfoef,'marketing',label.dept.dept,krustykrab
-squidward@krustykrab.com,YxdT5fpMfoef,'finance',label.dept.dept,krustykrab
-mrspuff@puffsboatingschool.com,YxdT5fpMfoef,'services',label.dept.dept,puffsboatingschool
+client_id,login,label,variable,value
+krustykrab,spongebob@krustykrab.com,label.dept.dept,YxdT5fpMfoef,'sales'
+krustykrab,spongebob@krustykrab.com,label.dept.dept,YxdT5fpMfoef,'facilities'
+krustykrab,patrick@krustykrab.com,label.dept.dept,YxdT5fpMfoef,'marketing'
+krustykrab,squidward@krustykrab.com,label.dept.dept,YxdT5fpMfoef,'finance'
+puffsboatingschool,mrspuff@puffsboatingschool.com,label.dept.dept,YxdT5fpMfoef,'services'
 ```
