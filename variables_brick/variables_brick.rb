@@ -57,16 +57,14 @@ module GoodData
 
         segment_name = params['segment'] || fail('Segment parameter is empty')
 
-        all_domain_segments = domain.segments
+        all_segments = domain.segments
 
         puts "List segments:"
-        all_domain_segments.each do |segment|
+        all_segments.each do |segment|
           puts "-> #{segment.segment_id}"
         end
 
-        pick_segment = all_domain_segments.select do |segment|
-          segment.segment_id.downcase == segment_name
-        end
+        pick_segment = all_segments.select { |s| s.segment_id.downcase == segment_name.downcase }
 
         puts "Pick segment:"
         pick_segment.each do |segment|
@@ -82,10 +80,15 @@ module GoodData
         # Load variables and values from ADS.
         data = CSV.read(File.open(data_source.realize(params), 'r:UTF-8'),
                :headers => true, :return_headers => false, encoding: 'utf-8')
-        
+
         # Check header names and order.
         expected_headers = ["client_id", "login", "label", "variable", "value"]
         fail "Unexpected headers - check naming and ordering" unless data.headers == expected_headers
+
+        # Auto-toggle to client-specific deployment
+        if params['CLIENT_ID']
+          data = data.select { |row| row['client_id'].to_s.downcase == params['CLIENT_ID'].to_s.downcase }
+        end
         
         data.group_by { |d| d['client_id'] }
         .map do |input_client, row|

@@ -5,14 +5,16 @@ This brick assigns variable values at the user level for one or more workspaces.
 
 ## Prerequisites
 
-The brick requires only one input source table, `vb_input`, which is referenced directly at runtime. See appendix.
+The brick requires an input source table `vb_input` with the following fields. You are allowed to change the table name but not the field names. See appendix.
 ```
 client_id, login, label, variable, value
 ```
 
 ## Steps
 
-Deploy script with the following parameters to the environment's SERVICE workspace.
+You may either deploy the brick with the following parameters to:
+- **the environment's SERVICE workspace**, in which case variables will be assigned to all workspaces in the *selected segment*.
+- **a specific client workspace**, in which case variables will be assigned for that *workspace only*. This is automatic and does not require additional configuration.
 
 | Parameter | Example Value |
 | --- | --- |
@@ -41,7 +43,7 @@ Example value for `gd_encoded_params`:
 }
 ```
 
-Example result for `vb_input`:
+Example data for `vb_input`:
 ```
 client_id,login,label,variable,value
 krustykrab,spongebob@krustykrab.com,label.dept.dept,YxdT5fpMfoef,'sales'
