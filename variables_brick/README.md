@@ -1,20 +1,27 @@
 # Variables Brick
-This brick assigns variable values at the user level for one or more workspaces.
+This brick assigns variable values for all workspaces within a segment.
 
-*Coming soon:* ability to toggle between workspace level variable assignment (default variable values) and user level variable assignment
+It can toggle between workspace-level assignment, i.e. default variable values, and user-level assignment.
 
 ## Prerequisites
 
-The brick requires an input source table `vb_input` with the following fields. You are allowed to change the table name but not the field names. See appendix.
+The brick requires an input source table `lcm_variable` with the following fields. You are allowed to change the table name but not the field names. See appendix.
+
+Fields for `sync_mode = workspace`:
+```
+client_id, label, variable, value
+```
+
+Fields for `sync_mode = user`:
 ```
 client_id, login, label, variable, value
 ```
 
-## Steps
+## Deployment
 
-You may either deploy the brick with the following parameters to:
-- **the environment's SERVICE workspace**, in which case variables will be assigned to all workspaces in the *selected segment*.
-- **a specific client workspace**, in which case variables will be assigned for that *workspace only*. This is automatic and does not require additional configuration.
+Pick one of two options for deployment. Both require the same set of parameters specified below. 
+- Deploy to a **MASTER workspace**, then run a release and rollout. Variables will be assigned in each client workspace by independent executions.
+- Deploy to a **SERVICE workspace**. Variables will be assigned in the selected segment's workspaces by a single execution.
 
 | Parameter | Example Value |
 | --- | --- |
@@ -27,15 +34,16 @@ You may either deploy the brick with the following parameters to:
 | ads_client\|password | (secure parameter) |
 | organization | organization_name |
 | segment | segment_name |
+| sync_mode | user |
 
 ## Appendix
 
-Example value for `gd_encoded_params`:
+Example value for `gd_encoded_params` if `sync_mode = workspace`:
 ```
 {
   "input_source": {
     "type": "ads",
-    "query": "SELECT client_id, login, label, variable, value FROM vb_input"
+    "query": "SELECT client_id, label, variable, value FROM lcm_variable"
   },
   "ads_client": {
     "jdbc_url": "jdbc:gdc:datawarehouse://HOSTNAME:443/gdc/datawarehouse/instances/ADS_ID"
@@ -43,12 +51,33 @@ Example value for `gd_encoded_params`:
 }
 ```
 
-Example data for `vb_input`:
+Example value for `gd_encoded_params` if `sync_mode = workspace`:
+```
+{
+  "input_source": {
+    "type": "ads",
+    "query": "SELECT client_id, login, label, variable, value FROM lcm_variable"
+  },
+  "ads_client": {
+    "jdbc_url": "jdbc:gdc:datawarehouse://HOSTNAME:443/gdc/datawarehouse/instances/ADS_ID"
+  }
+}
+```
+
+Example data for `lcm_variable` if `sync_mode = workspace`:
+```
+client_id,label,variable,value
+baratheon,label.location.location,A3nbo7Ws2mpq,stormlands
+lannister,label.location.location,A3nbo7Ws2mpq,casterlyrock
+stark,label.location.location,A3nbo7Ws2mpq,winterfell
+```
+
+Example data for `lcm_variable` if `sync_mode = user`:
 ```
 client_id,login,label,variable,value
-krustykrab,spongebob@krustykrab.com,label.dept.dept,YxdT5fpMfoef,'sales'
-krustykrab,spongebob@krustykrab.com,label.dept.dept,YxdT5fpMfoef,'facilities'
-krustykrab,patrick@krustykrab.com,label.dept.dept,YxdT5fpMfoef,'marketing'
-krustykrab,squidward@krustykrab.com,label.dept.dept,YxdT5fpMfoef,'finance'
-puffsboatingschool,mrspuff@puffsboatingschool.com,label.dept.dept,YxdT5fpMfoef,'services'
+baratheon,robert@baratheon.com,label.dept.dept,YxdT5fpMfoef,devops
+baratheon,stannis@baratheon.com,label.dept.dept,YxdT5fpMfoef,devops
+lannister,jaime@lannister.com,label.dept.dept,YxdT5fpMfoef,finance
+stark,ned@stark.com,label.dept.dept,YxdT5fpMfoef,marketing
+stark,ned@stark.com,label.dept.dept,YxdT5fpMfoef,product
 ```

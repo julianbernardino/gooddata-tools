@@ -9,106 +9,142 @@ module GoodData
     
     class VariablesBrick < GoodData::Bricks::Brick
 
-      def self.set_variable_user_value(user_id, variable, label, values)
-        project = variable.project
-        client = project.client
-        
-        expression = GoodData::SmallGoodZilla.create_category_filter([label] + values, project)
-        values = expression[:expression]
+      def call(params)
+        @params = params
+        @data_source = GoodData::Helpers::DataSource.new(@params['input_source'])
 
-        payload = {
+        check_params
+        pick_segments
+        load_data
+        auto_toggle
+        assign_workspace if @sync_mode == 'workspace'
+        assign_user if @sync_mode == 'user'
+      end
+
+      def set_variable_value(user_id = nil, variable, label, values)
+        @project = variable.project
+        @user_id = user_id
+        @variable = variable
+        @label = label
+        @values = values
+        @client = @project.client
+
+        @project_values = variable.project_values
+        @user_values_index = self.find_index
+
+        create_payload
+        post_payload
+      end
+
+      def find_index
+        @variable.user_values.map { |i| [i.data, i.to_s] }
+        .find_index { |m| m[0] == @user_id }
+      end
+
+      def create_payload
+        expression = GoodData::SmallGoodZilla.create_category_filter([@label] + @values, @project)
+        values = expression[:expression]
+        related = @user_id ? @user_id : @project.uri
+        level = @sync_mode == 'user' ? 'user' : 'project'
+
+        @payload = {
           "variable" => {
             "expression" => values,
-            "level" => "user",
+            "level" => "#{level}",
             "type" => "filter",
-            "prompt" =>  variable.uri,
-            "related" => user_id
+            "prompt" =>  @variable.uri,
+            "related" => related
           }
         }
+      end
 
-        # Get all variable objects.
-        # Compare User ID to existing variable objects.
-        vu_index = variable.user_values.map { |i| [i.data, i.to_s] }
-                   .find_index { |m| m[0] == user_id }
-
-        # For each user, the Post URI depends on whether 
-        # or not a variable object already exists.
-        if vu_index.nil?
-          client.post(project.links['metadata'] + '/variables/item', payload)
-        else
-          post_uri = variable.user_values[vu_index].uri
-          client.post(post_uri, payload)
+      def post_payload
+        if (@sync_mode == 'workspace' && @project_values.empty?) || (@sync_mode == 'user' && @user_values_index.nil?)
+          @client.post(@project.links['metadata'] + '/variables/item', @payload)
+        elsif @sync_mode == 'workspace'
+          post_uri = @project_values.first.uri
+          @client.post(post_uri, @payload)
+        elsif @sync_mode == 'user'
+          post_uri = @variable.user_values[@user_values_index].uri
+          @client.post(post_uri, @payload)
         end
       end
 
-      def call(params)
-        
-        client = params['GDC_GD_CLIENT'] || fail('GDC_GD_CLIENT is missing')
-        project = client.projects(params['gdc_project']) || client.projects(params['GDC_PROJECT_ID'])
+      def check_params
+        @client = @params['GDC_GD_CLIENT']
+        @domain_name = @params['organization'] || @params['domain']
+        @segment_name = @params['segment']
+        @sync_mode = @params['sync_mode'].downcase
 
-        fail 'input_source missing' unless params['input_source']
-        data_source = GoodData::Helpers::DataSource.new(params['input_source'])
-        
-        mandatory_params = [data_source]
-        mandatory_params.each { |param| fail param + ' is required' unless param }
+        mandatory_params = [@data_source, @sync_mode, @client, @domain_name, @segment_name]
+        mandatory_params.each { |param| 'Missing parameter' unless param }
 
-        domain_name = params['organization'] || params['domain'] || fail('Organization parameter is empty')
-        domain = client.domain(domain_name)
+        fail 'Input_source missing' unless @params['input_source']
+        fail 'Sync mode invalid' unless @sync_mode == 'user' || @sync_mode == 'workspace'
+      end
 
-        segment_name = params['segment'] || fail('Segment parameter is empty')
-
+      def pick_segments
+        domain = @client.domain(@domain_name)
         all_segments = domain.segments
 
-        puts "List segments:"
-        all_segments.each do |segment|
-          puts "-> #{segment.segment_id}"
-        end
+        pick_segment = all_segments.select { |s| s.segment_id.downcase == @segment_name.downcase }
 
-        pick_segment = all_segments.select { |s| s.segment_id.downcase == segment_name.downcase }
-
-        puts "Pick segment:"
         pick_segment.each do |segment|
-          puts "-> #{segment.segment_id}"
-
           @client_pid_map = {}
-
           segment.clients.each do |client|
             @client_pid_map["#{client.client_id}"] = "#{client.project_uri.split("/").last}"
           end
         end
+      end
 
-        # Load variables and values from ADS.
-        data = CSV.read(File.open(data_source.realize(params), 'r:UTF-8'),
-               :headers => true, :return_headers => false, encoding: 'utf-8')
+      def auto_toggle
+        @ads_data = @ads_data.select { |row| row['client_id'].downcase == @params['CLIENT_ID'].downcase } if @params['CLIENT_ID']
+      end 
 
-        # Check header names and order.
-        expected_headers = ["client_id", "login", "label", "variable", "value"]
-        fail "Unexpected headers - check naming and ordering" unless data.headers == expected_headers
+      def load_data
+        @ads_data = CSV.read(File.open(@data_source.realize(@params), 'r:UTF-8'),
+                    :headers => true, :return_headers => false, encoding: 'utf-8')
 
-        # Auto-toggle to client-specific deployment
-        if params['CLIENT_ID']
-          data = data.select { |row| row['client_id'].to_s.downcase == params['CLIENT_ID'].to_s.downcase }
-        end
-        
-        data.group_by { |d| d['client_id'] }
+        expected_headers = ["client_id", "label", "variable", "value"] if @sync_mode == 'workspace'
+        expected_headers = ["client_id", "login", "label", "variable", "value"] if @sync_mode == 'user'
+
+        fail "Unexpected headers - check naming and ordering" unless @ads_data.headers == expected_headers
+      end
+
+      def assign_workspace
+        @ads_data.group_by { |d| d['client_id'] }
         .map do |input_client, row|
-          # Set project context.
           get_project = @client_pid_map["#{input_client}"]
-          project = client.projects(get_project)
+          project = @client.projects(get_project)
 
-          # Set user and variable context.
+          row.group_by { |line| [line['variable']] }
+          .each do |block_result, row|
+            variable  = project.variables(block_result[0])
+            label     = project.labels(row.first['label'])
+
+            set_variable_value(nil, variable, label, row.map {|l| l['value']})
+          end
+        end
+      end
+
+      def assign_user
+        @ads_data.group_by { |d| d['client_id'] }
+        .map do |input_client, row|
+          get_project = @client_pid_map["#{input_client}"]
+          project = @client.projects(get_project)
+
           row.group_by { |line| [line['variable'], line['login']] }
           .each do |block_result, row|
-            # Set user id, variable, label, and values for user in project
             user_id = project.get_user(block_result[1])
                       .json['user']['links']['self']
             variable  = project.variables(block_result[0])
             label     = project.labels(row.first['label'])
 
-            VariablesBrick.set_variable_user_value(user_id, variable, label, row.map {|l| l['value']})
+            set_variable_value(user_id, variable, label, row.map {|l| l['value']})
           end
         end
       end
+
     end
   end
 end
