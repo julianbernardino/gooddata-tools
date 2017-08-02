@@ -17,8 +17,8 @@ module GoodData
         load_data
 
         @client = GoodData.connect(username: "#{params['GDC_USERNAME']}",
-        	                         password: "#{params['GDC_PASSWORD']}",
-        	                         server: "https://#{params['CLIENT_GDC_HOSTNAME']}")
+                                   password: "#{params['GDC_PASSWORD']}",
+                                   server: "https://#{params['CLIENT_GDC_HOSTNAME']}")
 
         set_param_values
       end
