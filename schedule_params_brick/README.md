@@ -1,5 +1,5 @@
 # Schedule Params Brick
-This brick sets schedule parameter values for all workspaces within a segment.
+This brick sets schedule parameter values for workspaces within a segment.
 
 By design, it does not support secure parameters.
 

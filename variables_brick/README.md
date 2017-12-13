@@ -1,5 +1,5 @@
 # Variables Brick
-This brick assigns variable values for all workspaces within a segment.
+This brick assigns variable values for workspaces within a segment.
 
 It can toggle between workspace-level assignment, i.e. default variable values, and user-level assignment.
 
@@ -51,7 +51,7 @@ Example value for `gd_encoded_params` if `sync_mode = workspace`:
 }
 ```
 
-Example value for `gd_encoded_params` if `sync_mode = workspace`:
+Example value for `gd_encoded_params` if `sync_mode = user`:
 ```
 {
   "input_source": {
