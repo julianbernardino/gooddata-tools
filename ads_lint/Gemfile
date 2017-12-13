@@ -1,0 +1,7 @@
+source 'https://rubygems.org'
+ 
+gem 'gooddata', '0.6.27'
+gem 'ffi', '1.9.3', platform: 'jruby'
+gem 'sequel'
+gem 'json'
+gem 'gooddata-dss-jdbc', '0.1.12'

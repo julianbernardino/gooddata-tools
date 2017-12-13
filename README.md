@@ -1,10 +1,10 @@
 # GoodData Services Tools
 Automation tooling to make life at GoodData easier
 
-## ADS Lint
-* Reviews ADS queries with a single command
-* Flags code smells
-* Generates query plans for all DML statements
+## ADS Lint (Beta)
+* Reviews all of your ADS queries with a single command
+* Writes query plans to a local folder for easy reference
+* Flags high cost queries and code smells
 * Identifies bad joins, group clauses, uneven segmentation, and more
 * Provides additional optimization suggestions
 
