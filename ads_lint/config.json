@@ -2,7 +2,7 @@
   "mandatory_params": {
 
     "dir_dml": "/path/to/sql/dml",
-    "dir_qp": "/path/to/write/query/plans",
+    "dir_qp": "./qp",
 
     "ads_username": "ps-etl+technical-user@gooddata.com",
     "ads_password": "",

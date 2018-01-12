@@ -34,7 +34,11 @@ rvm install jruby
 rvm list
 rvm use jruby-x.x.x.x
 ```
-4. Go to the unzipped package and run the executable:
+4. Install dependencies:
+```
+bundle install
+```
+5. Go to the unzipped package and run the executable:
 ```
 ruby ads_lint.rb
 ```

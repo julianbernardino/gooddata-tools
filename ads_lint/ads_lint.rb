@@ -90,8 +90,8 @@ class ADSLint
       @rec_body.prepend("\n#{'=' * 68}\n\nProjection recommendations are off. To enable, turn it \"ON\" in the configuration file.\n")
     end
 
-    puts "ADS Lint has completed. Type 'open flags.csv' to review."
-    File.open('./flags.csv', 'w') { |file| file.write(@header << @body << @rec_body) }
+    puts "\nADS Lint has completed. Type 'open lint.txt' to review.\n\n#{'=' * 15}\n"
+    File.open('./lint.txt', 'w') { |file| file.write(@header << @body << @rec_body) }
 
   end
 
@@ -196,6 +196,8 @@ class ADSLint
   end
 
 end
+
+puts "#{'=' * 15}\n\nADS LINT\n\n"
 
 ADSLint.write_qp(@m_params['dir_dml'],
                  @m_params['dir_qp'],
