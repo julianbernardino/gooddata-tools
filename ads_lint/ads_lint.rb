@@ -173,8 +173,8 @@ class ADSLint
       @key_mag[:"#{left_key}"] = magnitude unless @key_mag.key?(:"#{left_key}") && @key_mag[:"#{left_key}"] > magnitude
       @key_mag[:"#{right_key}"] = magnitude unless @key_mag.key?(:"#{right_key}") && @key_mag[:"#{right_key}"] > magnitude
 
-      @key_seg[:"#{left_table}"] = -1 if @table_counts[:"#{left_table}"] * 8 < @table_counts[:"#{right_table}"].to_i
-      @key_seg[:"#{right_table}"] = -1 if @table_counts[:"#{right_table}"] * 8 < @table_counts[:"#{left_table}"].to_i
+      @key_seg[:"#{left_table}"] = -1 if @table_counts[:"#{left_table}"] * 15 < @table_counts[:"#{right_table}"].to_i
+      @key_seg[:"#{right_table}"] = -1 if @table_counts[:"#{right_table}"] * 15 < @table_counts[:"#{left_table}"].to_i
     end
   end
 
