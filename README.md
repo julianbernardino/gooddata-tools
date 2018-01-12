@@ -6,7 +6,7 @@ Automation tooling to make life at GoodData easier
 * Writes query plans to a local folder for easy reference
 * Flags high cost queries and code smells
 * Identifies bad joins, group clauses, uneven segmentation, and more
-* Provides additional optimization suggestions
+* Provides recommendations on projection definitions
 
 ## Schedule Params Brick
 * Sets schedule parameter values for workspaces within a segment

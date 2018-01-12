@@ -9,7 +9,9 @@
     "ads_hostname": "secure.gooddata.com",
     "ads_instance_id": "",
 
-    "cost_minimum": "10M"
+    "cost_minimum": "10M",
+
+    "projection_recommendations": "ON"
 
   },
 
